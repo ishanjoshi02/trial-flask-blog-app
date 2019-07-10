@@ -1,7 +1,7 @@
 from flask import Flask, render_template, redirect
 from flask import request
 
-from flask_login import LoginManager, login_required, login_user, logout_user
+from flask_login import LoginManager, login_required, login_user, logout_user, current_user
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -29,17 +29,17 @@ login_manager.init_app(app)
 @app.route("/")
 @login_required
 def hello():
-    print(login_manager.user())
-    return render_template("index.html",)
+    user_id = current_user.user_id
+    blogs = session.query(BlogModel).filter(BlogModel.author==user_id)
+    for blog in blogs:
+        print(blog)
+    return render_template("index.html",name=current_user.name, blogs=blogs)
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    print(user_id)
     if user_id:
        return session.query(UserModel).get(user_id)
-        
-       
     else:
         return None
 @app.route("/login", methods=["GET" ,"POST"])
@@ -97,15 +97,23 @@ def registerUser():
 @app.route("/blog")
 def getBlog():
     # TODO write code to fetch data from database
-    id = request.args['id']
-    print(id)
-    return render_template("blog.html", name="Ishan's Blog", content="Lorem Ipsum", release_date="10th July 2019", author="Ishan Joshi")
+    blog_id = request.args['id']
+    blog = session.query(BlogModel).get(blog_id)
+    author = session.query(UserModel).get(blog.author)
+    return render_template("blog.html", name=blog.title, content=blog.content, author=author.name)
 
 @app.route("/newBlog", methods=["GET", "POST"])
 @login_required
-def newBlog(user_id):
+def newBlog():
+    print("hello")
     if request.form:
-
-        blog = Blog()
+        form = request.form
+        print(form)
+        title = form['title']
+        content = form['content']
+        blog = BlogModel(title=title, content=content,author=current_user.user_id)
+        session.add(blog)
+        session.commit()
+        return redirect('/blog?id={}'.format(blog.blog_id))
     else:
         return render_template("post_blog.html")

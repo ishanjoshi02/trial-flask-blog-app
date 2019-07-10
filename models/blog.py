@@ -8,7 +8,10 @@ class BlogModel(Base):
 
     __tablename__ = "blogs"
 
-    id = Column(Integer, primary_key=True)
+    blog_id = Column(Integer, primary_key=True)
     title = Column(String)
     content = Column(String)
-    author = Column(Integer, ForeignKey("user.id"))
+    author = Column(Integer)
+
+    def __repr__(self):
+        return "<BlogModel title: {} AuthorId: {} >".format(self.title, self.author)

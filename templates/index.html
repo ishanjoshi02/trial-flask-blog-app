@@ -2,4 +2,13 @@
 {% block titleBlock %}Home{% endblock %}
 {% block bodyBlock %}
     <h2><center>Welcome {{ name }}</center></h2>
+
+    {% if blogs %}
+        {% for blog in blogs %}
+            <a href="/blog?id={{blog.blog_id}}">{{blog.title}}</a>
+            <br/>
+        {% endfor %}
+    {% endif %} 
+        <a href="/newBlog">New Blog</a>
+    
 {% endblock %}

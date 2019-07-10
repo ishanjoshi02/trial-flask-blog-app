@@ -1,9 +1,7 @@
 {% extends 'base.html' %}
 {% block titleBlock %}{{ name }}{% endblock %}
 {% block bodyBlock %}
-    <h1>Some Blog</h1>
-    {{ release_date }} 
-    <br />
+    <h1>{{ name }}</h1>
     Written by {{ author }}
     <p>{{ content }}</p>
 {% endblock %}
