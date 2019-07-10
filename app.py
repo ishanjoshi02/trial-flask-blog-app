@@ -25,6 +25,7 @@ app.config.from_object('config')
 app.config.from_pyfile('instance/config.py')
 
 login_manager.init_app(app)
+login_manager.login_view="/login"
 
 @app.route("/")
 @login_required
@@ -35,6 +36,16 @@ def hello():
         print(blog)
     return render_template("index.html",name=current_user.name, blogs=blogs)
 
+# def is_logged_in(a_func):
+
+#     def internal_function():
+
+      
+        
+#         a_func()
+#     if current_user and current_user.is_authenticated:
+#         return redirect('/')
+#     return internal_function
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -43,7 +54,11 @@ def load_user(user_id):
     else:
         return None
 @app.route("/login", methods=["GET" ,"POST"])
+# @is_logged_in
 def login():
+
+    if current_user.is_authenticated:
+        return redirect('/')
         # Handle User input code (if request.form)
     if request.form:
 
@@ -57,10 +72,12 @@ def login():
         for row in query:
             
             if row.password == password:
-                login_user(row)
+                login_user(row, remember=True)
                 return redirect("/")
 
     return render_template("login.html")
+
+
 
 @app.route("/logout")
 @login_required
@@ -69,8 +86,11 @@ def logout():
     return redirect('/login')
 
 @app.route("/register", methods=["GET", "POST"])
+# @is_logged_in
 def registerUser():
 
+    if current_user.is_authenticated:
+        return redirect('/')
     if request.form:
 
         form = request.form
@@ -88,7 +108,7 @@ def registerUser():
             session.add(new_user)
             session.commit()
             print(new_user.user_id)
-            login_user(new_user)
+            login_user(new_user, remember=True)
             return redirect("/")
 
     return render_template("register.html")
