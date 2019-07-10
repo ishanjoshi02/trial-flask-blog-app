@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block titleBlock %}New Blog{% endblock %}
+{% block bodyBlock %}
+<h1>New Blog</h1>
+<form method="POST" action="/login">
+        <div class="form-group col-sm-2">
+            <input type="text" name="title" placeholder="Title" />
+            <textarea name="content"  placeholder="Write Blog here" ></textarea>
+            <button class="btn btn-primary" role='submit'>Login</button>
+        </div>
+</form>
+{% endblock %}
