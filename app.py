@@ -100,12 +100,12 @@ def getBlog():
     blog_id = request.args['id']
     blog = session.query(BlogModel).get(blog_id)
     author = session.query(UserModel).get(blog.author)
-    return render_template("blog.html", name=blog.title, content=blog.content, author=author.name)
+    
+    return render_template("blog.html", name=blog.title, content=blog.content, author=author.name, editable=(blog.author==current_user.user_id), blog_id=blog_id)
 
 @app.route("/newBlog", methods=["GET", "POST"])
 @login_required
 def newBlog():
-    print("hello")
     if request.form:
         form = request.form
         print(form)
@@ -117,3 +117,40 @@ def newBlog():
         return redirect('/blog?id={}'.format(blog.blog_id))
     else:
         return render_template("post_blog.html")
+
+@app.route("/editBlog", methods=["GET", "POST"])
+@login_required
+def editBlog():
+    blog_id = request.args['id']
+    if request.form:
+        form = request.form
+        print(form)
+        title = form['title']
+        content = form['content']
+        blog = BlogModel(title=title, content=content)
+        org_blog = session.query(BlogModel).get(blog_id)
+        if org_blog.author != current_user.user_id: 
+            return "Permission Denied"
+        session.query(BlogModel).filter(BlogModel.blog_id==blog_id).update({
+            "title":title,
+            "content":content
+        })
+        session.commit()
+        return redirect('/blog?id={}'.format(blog_id))
+    else:
+        blog = session.query(BlogModel).get(blog_id)
+        if blog.author == current_user.user_id:
+            return render_template('edit_blog.html', title=blog.title, content=blog.content, blog_id=blog_id)
+        else:
+            return "Sign in with correct user"
+
+@app.route("/deleteBlog", methods=["GET", "POST"])
+@login_required
+def delete_blog():
+    blog_id = request.args["id"]
+    blog = session.query(BlogModel).get(blog_id)
+    if blog.author == current_user.user_id:
+        session.query(BlogModel).filter(BlogModel.blog_id==blog_id).delete()
+        session.commit()
+        return redirect("/")
+    return "Permission Denied"

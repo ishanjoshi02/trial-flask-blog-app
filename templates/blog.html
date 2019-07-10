@@ -4,4 +4,9 @@
     <h1>{{ name }}</h1>
     Written by {{ author }}
     <p>{{ content }}</p>
+    {% if editable %}
+        <a href="/editBlog?id={{blog_id}}">Edit Blog</a>
+        <br />
+        <a href="/deleteBlog?id={{blog_id}}">Delete Blog</a>
+    {% endif %}
 {% endblock %}
