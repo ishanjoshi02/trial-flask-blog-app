@@ -1,12 +1,21 @@
-{% extends 'base.html' %}
-{% block titleBlock %}{{ name }}{% endblock %}
-{% block bodyBlock %}
-    <h1>{{ name }}</h1>
-    Written by {{ author }}
-    <p>{{ content }}</p>
+{% extends 'base.html' %} {% block titleBlock %}{{ name }}{% endblock %} {%
+block bodyBlock %}
+<div class="card mb-3">
+  <div class="card-header">
+    <h3>{{ name }}</h3>
+  </div>
+  <div class="card-body">
+    <h6 class="card-subtitle text-muted">Written by {{ author }}</h6>
+    <p class="card-text">{{ content }}</p>
+  </div>
+  <div class="card-footer">
     {% if editable %}
-        <a href="/editBlog?id={{blog_id}}">Edit Blog</a>
-        <br />
-        <a href="/deleteBlog?id={{blog_id}}">Delete Blog</a>
+    <a class="btn btn-warning" href="/editBlog?id={{ blog_id }}">Edit Blog</a>
+
+    <a class="btn btn-danger" href="/deleteBlog?id={{ blog_id }}"
+      >Delete Blog</a
+    >
     {% endif %}
+  </div>
+</div>
 {% endblock %}
