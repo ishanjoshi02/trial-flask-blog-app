@@ -1,20 +1,42 @@
-{% extends 'base.html' %}
-{% block titleBlock %}Register User{% endblock %}
-{% block bodyBlock %}
-<h1>Register User</h1>
-<form method="POST" action="/register">
-        <div class="form-group col-sm-2">
-            <input type="text" name="firstname" placeholder="First Name" />
-            <input type="text" name="lastname" placeholder="Last Name" />
-            <input type="text" name="username" placeholder="Username" />
-            <input type="password" name="password"  placeholder="Password" />
-            <input type="password" name="confirm_password" placeholder="Confirm Password" />
-            <button class="btn btn-primary" role='submit'>Login</button>
+{% from "form_template.html" import render_field %} {% extends 'base.html' %} {%
+block titleBlock %}Register User{% endblock %} {% block bodyBlock %}
+
+<div class="card bg-light mb-3">
+  <div class="card-header">Register User</div>
+  <div class="card-body">
+    <form method="POST" action="/register">
+      <div class="form-group col-sm-2">
+        <div class="form-group">
+          <input type="text" name="firstname" placeholder="First Name" />
         </div>
-</form> 
-Already have an Account?
-<br />
-<a class="btn btn-primary" href='/login'>
-   Login
-</a>
+        <div class="form-group">
+          <input type="text" name="lastname" placeholder="Last Name" />
+        </div>
+        <div class="form-group">
+          <input type="text" name="username" placeholder="Username" />
+        </div>
+        <div class="form-group">
+          <input type="password" name="password" placeholder="Password" />
+        </div>
+        <div class="form-group">
+          <input
+            type="password"
+            name="confirm_password"
+            placeholder="Confirm Password"
+          />
+        </div>
+        <button class="btn btn-primary" role="submit">Register</button>
+      </div>
+      {{ form.csrf_token }}
+    </form>
+  </div>
+  <div class="card-footer">
+    Already have an Account?
+    <br />
+    <a class="btn btn-primary" href="/login">
+      Login
+    </a>
+  </div>
+</div>
+
 {% endblock %}
