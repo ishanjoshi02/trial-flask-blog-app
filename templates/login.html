@@ -1,14 +1,25 @@
-{% extends 'base.html' %}
-{% block titleBlock %}Log In{% endblock %}
-{% block bodyBlock %}
-    <h1>Login Page</h1>
+{% extends 'base.html' %} {% block titleBlock %}Log In{% endblock %} {% block
+bodyBlock %}
+<div class="card bg-light mb-3">
+  <div class="card-header">
+    Login
+  </div>
+  <div class="card-body">
     <form method="POST" action="/login">
-            <div class="form-group col-sm-2">
-                <input type="text" name="username" placeholder="Username" />
-                <input type="password" name="password"  placeholder="Password" />
-                <button role='submit'>Login</button>
-            </div>
+      <div class="form-group col-sm-2">
+        <div class="form-group">
+          <input type="text" name="username" placeholder="Username" />
+        </div>
+        <div class="form-group">
+          <input type="password" name="password" placeholder="Password" />
+        </div>
+        <button class="btn btn-primary" role="submit">Login</button>
+      </div>
+      {{ form.csrf_token }}
     </form>
+  </div>
+  <div class="card-footer">
     Don't have an Account?
-    <br /><a href="/register">Register Now</a>
-{% endblock %}
+    <br /><a href="/register">Register Now</a> {% endblock %}
+  </div>
+</div>
