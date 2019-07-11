@@ -136,10 +136,13 @@ def registerUser():
 def getBlog():
     # TODO write code to fetch data from database
     blog_id = request.args['id']
-    blog = session.query(BlogModel).get(blog_id)
-    author = session.query(UserModel).get(blog.author)
+    try:
+        blog = session.query(BlogModel).get(blog_id)
+        author = session.query(UserModel).get(blog.author)
 
-    return render_template("blog.html", name=blog.title, content=blog.content, author=author.name, editable=(blog.author == current_user.user_id), blog_id=blog_id)
+        return render_template("blog.html", name=blog.title, content=blog.content, author=author.name, editable=(blog.author == current_user.user_id), blog_id=blog_id)
+    except AttributeError:
+        return render_template("blog_deleted.html")
 
 
 @app.route("/newBlog", methods=["GET", "POST"])
