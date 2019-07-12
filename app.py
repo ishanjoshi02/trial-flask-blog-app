@@ -79,6 +79,7 @@ def login():
         for row in query:
             if row.password == password or check_password_hash(row.password, password):
                 login_user(row, remember=True)
+                flash("")
                 return redirect("/")
             else:
                 form.errors['wrong_password'] = ["Wrong Password"]
@@ -122,6 +123,7 @@ def registerUser():
             session.add(new_user)
             session.commit()
             login_user(new_user, remember=True)
+            flash("")
             return redirect("/")
         else:
             form.errors['password_dont_match'] = ["Passwords don't match"]
