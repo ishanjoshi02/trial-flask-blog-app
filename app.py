@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, make_response
+from flask import Flask, render_template, redirect, make_response, flash
 from flask import request
 
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -19,7 +19,7 @@ from models.blog import BlogModel
 
 from forms import RegisterForm, LoginForm, BlogForm
 
-database_uri = "mysql://root:toor2019@localhost:3306/sys"
+database_uri = "mysql://root:toor2019@flaskdemoinstance.c0x127jnab22.ap-south-1.rds.amazonaws.com:3306/sys"
 engine = create_engine(database_uri)
 
 Session = sessionmaker()
@@ -161,7 +161,6 @@ def editBlog(id):
     blog_id = id
     org_blog = session.query(BlogModel).get(blog_id)
     form = BlogForm()
-
     if form.validate_on_submit():
         name = form['title'].data
         content = form['content'].data
@@ -170,14 +169,17 @@ def editBlog(id):
         session.query(BlogModel).filter(BlogModel.id == blog_id).update({
             "name": name,
             "content": content,
-            "updated_on": datetime.datetime.now()
+            "edited_on": datetime.datetime.now()
         })
 
         session.commit()
+        flash("Blog edited successfully")
         return redirect("/blog/%d" % id)
     else:
         blog = session.query(BlogModel).get(blog_id)
         if blog.author == current_user.id:
+            form.title.data = blog.name
+            form.content.data = blog.content
             return render_template('edit_blog.html', title=blog.name, content=blog.content, blog_id=blog_id, form=form)
         else:
             return "Sign in with correct user"
@@ -266,6 +268,7 @@ class Blog(Resource):
                     "deleted_on": datetime.datetime.now()
                 })
             session.commit()
+            flash("Blog deleted successfully!")
             return True
         return "Permission Denied"
 
