@@ -1,0 +1,12 @@
+{% extends 'base.html' %} {% block titleBlock %}
+{{ name }}
+{% endblock %} {% block bodyBlock %}
+<center>
+  <h3>Name: {{ name }}</h3>
+  <h5>Username: {{ username }}</h5>
+</center>
+{% if blogs %} Blogs by {{ username }}<br />
+{% for blog in blogs %}
+<a href="/blog/{{ blog.id }}">{{ blog.name }}</a>
+<br />
+{% endfor %} {% endif %} {% endblock %}
