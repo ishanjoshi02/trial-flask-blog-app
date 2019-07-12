@@ -1,0 +1,35 @@
+{% extends 'base.html' %} {% block titleBlock %}Dashboard{% endblock %} {% block
+bodyBlock %}
+<script>
+  let start = 0;
+  let count = 5;
+  let end = count;
+  let loadBlogs = () => {
+    fetch(`/blog/${start}/${end}`, { method: "GET" })
+      .then(res => res.json())
+      .then(res => {
+        let blogList = document.getElementById("blogList");
+        console.log(res);
+        if (res.length < count) {
+          document.getElementById("loadMoreButton").disabled = true;
+        }
+        for (let i = 0; i < res.length; i++) {
+          console.log(res[i]);
+          item = document.createElement("li");
+          item.innerHTML = `<a href="/blog/${res[i].id}">${res[i].name}</a>`;
+          blogList.appendChild(item);
+        }
+      });
+  };
+  let loadMoreBlogs = () => {
+    start = end;
+    end = end + count;
+    loadBlogs();
+  };
+  loadBlogs();
+</script>
+
+<ul id="blogList"></ul>
+<button id="loadMoreButton" onclick="loadMoreBlogs()">Load More</button>
+<hr />
+{% endblock %}
