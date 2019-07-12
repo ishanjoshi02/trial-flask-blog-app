@@ -5,14 +5,28 @@ from wtforms.validators import Email, DataRequired
 
 
 class RegisterForm(Form):
-    firstname = StringField('firstname', validators=[DataRequired()])
-    lastname = StringField('lastname', validators=[DataRequired()])
+    firstname = StringField('firstname', validators=[
+                            DataRequired(message="First name is required")])
+    lastname = StringField('lastname', validators=[
+                           DataRequired(message="Last name is required")])
     confirm_password = StringField(
-        'confirm_password', validators=[DataRequired()])
-    username = StringField('username', validators=[DataRequired()])
-    password = StringField('password', validators=[DataRequired()])
+        'confirm_password', validators=[DataRequired(message="Confirm Password is required")])
+    username = StringField('username', validators=[
+                           DataRequired(message="Username is required")])
+    password = StringField('password', validators=[
+                           DataRequired("Password is required")])
 
 
 class LoginForm(Form):
-    username = StringField("username", validators=[DataRequired()])
-    password = StringField("password", validators=[DataRequired()])
+    username = StringField("username", validators=[
+                           DataRequired(message="username is required")])
+    password = StringField("password", validators=[
+                           DataRequired("password is required")])
+
+
+class BlogForm(Form):
+    title = StringField('title', validators=[
+        DataRequired(message="Blog title is required")])
+    content = StringField("content", validators=[
+        DataRequired(message="Blog content is required")
+    ])
