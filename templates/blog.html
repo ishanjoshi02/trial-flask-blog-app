@@ -14,8 +14,17 @@ block bodyBlock %}
         }
       });
   }
+  renderConfirmButton = () => {
+    document.getElementById("deleteButton").disabled = true;
+    let confirmDeleteButton = document.getElementById("confirmDeleteButton");
+    confirmDeleteButton.style.display = "block";
+  };
 </script>
 <div class="card mb-3">
+  {%with messages= get_flashed_messages()%} {% if messages %} {%for message in
+  messages %}
+  {{ message }}
+  {%endfor %} {%endif%} {%endwith%}
   <div class="card-header">
     <h3>{{ name }}</h3>
   </div>
@@ -35,8 +44,19 @@ block bodyBlock %}
   <div class="card-footer">
     {% if editable %}
     <a class="btn btn-warning" href="/blog/{{ blog_id }}/edit">Edit Blog</a>
-    <button class="btn btn-danger" onclick="deleteBlog({{ blog_id }})">
-      Delete Blog
+    <button
+      id="deleteButton"
+      class="btn btn-danger"
+      onclick="renderConfirmButton()"
+    >
+      Delete Blog</button
+    ><button
+      style="display: none"
+      id="confirmDeleteButton"
+      class="btn btn-danger"
+      onclick="deleteBlog({{ blog_id }})"
+    >
+      Confirm Delete
     </button>
     <p id="error"></p>
     {% endif %}

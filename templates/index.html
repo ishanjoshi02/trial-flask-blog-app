@@ -9,6 +9,10 @@ bodyBlock %}
 <br />
 {% endfor %} {% endif %}
 <hr />
+{%with messages= get_flashed_messages()%} {% if messages %} {%for message in
+messages %}
+{{ message }}
+{%endfor %} {%endif%} {%endwith%}
 <center><a class="btn btn-primary" href="/blog/new">New Blog</a></center>
 
 {% endblock %}
