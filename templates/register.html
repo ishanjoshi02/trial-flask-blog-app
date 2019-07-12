@@ -29,6 +29,9 @@ block bodyBlock %}
       </div>
       {{ form.csrf_token }}
     </form>
+    {% for field in form.errors %} {% for error in form.errors[field] %}
+    <div class="alert alert-error"><strong>Error!</strong> {{ error }}</div>
+    {% endfor %} {% endfor %}
   </div>
   <div class="card-footer">
     Already have an Account?
