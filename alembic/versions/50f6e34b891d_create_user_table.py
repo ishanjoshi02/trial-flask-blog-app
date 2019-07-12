@@ -17,8 +17,6 @@ down_revision = None
 branch_labels = None
 depends_on = None
 
-pymysql.install_as_MySQLdb()
-
 
 def upgrade():
     op.create_table(
