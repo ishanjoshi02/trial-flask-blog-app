@@ -277,4 +277,4 @@ api.add_resource(BlogList, '/blog/<int:start>/<int:end>')
 api.add_resource(Blog, '/blog/<int:id>')
 
 if __name__ == '__main__':
-    app.run()
+    app.run(host='0.0.0.0', port=80)
