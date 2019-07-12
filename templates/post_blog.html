@@ -1,12 +1,12 @@
-{% extends 'base.html' %}
-{% block titleBlock %}New Blog{% endblock %}
-{% block bodyBlock %}
+{% extends 'base.html' %} {% block titleBlock %}New Blog{% endblock %} {% block
+bodyBlock %}
 <h1>New Blog</h1>
-<form method="POST" action="/newBlog">
-        <div class="form-group col-sm-2">
-            <input type="text" name="title" placeholder="Title" />
-            <textarea name="content"  placeholder="Write Blog here" ></textarea>
-            <button class="btn btn-primary" role='submit'>Post</button>
-        </div>
+<form method="POST" action="/blog/new">
+  <div class="form-group col-sm-2">
+    <input type="text" name="title" placeholder="Title" />
+    <textarea name="content" placeholder="Write Blog here"></textarea>
+    {{ form.csrf_token }}
+    <button class="btn btn-primary" role="submit">Post</button>
+  </div>
 </form>
 {% endblock %}
