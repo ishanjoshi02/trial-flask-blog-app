@@ -19,7 +19,10 @@ from models.blog import BlogModel
 
 from forms import RegisterForm, LoginForm, BlogForm
 
-database_uri = "mysql://root:toor2019@flaskdemoinstance.c0x127jnab22.ap-south-1.rds.amazonaws.com:3306/sys"
+from instance.config import db_connection_url
+
+# database_uri = "mysql://root:toor2019@flaskdemoinstance.c0x127jnab22.ap-south-1.rds.amazonaws.com:3306/sys"
+database_uri = db_connection_url
 engine = create_engine(database_uri)
 
 Session = sessionmaker()

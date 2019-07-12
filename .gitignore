@@ -25,6 +25,7 @@ htmlcov/
 .vscode
 venv
 
+/instance/config.py
 
 # Elastic Beanstalk Files
 .elasticbeanstalk/*
