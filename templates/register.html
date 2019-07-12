@@ -1,12 +1,12 @@
-{% extends 'base.html' %} {% block titleBlock %}Register User{% endblock %} {%
-block bodyBlock %}
+{% extends 'base.html' %}{% from 'form_macro.html' import render_fields %} {%
+block titleBlock %}Register User{% endblock %} {% block bodyBlock %}
 
 <div class="card bg-light mb-3">
   <div class="card-header">Register User</div>
   <div class="card-body">
     <form method="POST" action="/register">
       <div class="form-group col-sm-2">
-        <div class="form-group">
+        <!-- <div class="form-group">
           <input type="text" name="firstname" placeholder="First Name" />
         </div>
         <div class="form-group">
@@ -24,7 +24,8 @@ block bodyBlock %}
             name="confirm_password"
             placeholder="Confirm Password"
           />
-        </div>
+        </div> -->
+        {{ render_fields(form) }}
         <button class="btn btn-primary" role="submit">Register</button>
       </div>
       {{ form.csrf_token }}
