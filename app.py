@@ -1,7 +1,15 @@
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, redirect, make_response
 from flask import request
 
+from werkzeug.security import generate_password_hash, check_password_hash
+from flask_wtf.csrf import CSRFProtect
+
 from flask_login import LoginManager, login_required, login_user, logout_user, current_user
+
+from flask_restful import Resource, Api
+
+import json
+import datetime
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
@@ -9,7 +17,7 @@ from sqlalchemy.orm import sessionmaker
 from models.user import UserModel
 from models.blog import BlogModel
 
-from forms import RegisterForm, LoginForm
+from forms import RegisterForm, LoginForm, BlogForm
 
 database_uri = "mysql://root:toor2019@localhost:3306/sys"
 engine = create_engine(database_uri)
@@ -20,33 +28,26 @@ session = Session()
 
 login_manager = LoginManager()
 
-app = Flask(__name__)
+csrf = CSRFProtect()
 
+app = Flask(__name__)
+api = Api(app)
 app.config.from_object('config')
 app.config.from_pyfile('instance/config.py')
 
+
 login_manager.init_app(app)
-login_manager.login_view = "/login"
+login_manager.login_view = '/login'
 
 
 @app.route("/")
 @login_required
-def hello():
-    user_id = current_user.user_id
-    blogs = session.query(BlogModel).filter(BlogModel.author == user_id)
-    for blog in blogs:
-        print(blog)
+def index():
+    user_id = current_user.id
+    blogs = session.query(BlogModel).filter(
+        BlogModel.author == current_user.id).filter(BlogModel.deleted_on == None)
     return render_template("index.html", name=current_user.name, blogs=blogs)
 
-# def is_logged_in(a_func):
-
-#     def internal_function():
-
-
-#         a_func()
-#     if current_user and current_user.is_authenticated:
-#         return redirect('/')
-#     return internal_function
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -57,14 +58,15 @@ def load_user(user_id):
 
 
 @app.route("/login", methods=["GET", "POST"])
-# @is_logged_in
 def login():
 
     if current_user.is_authenticated:
         return redirect('/')
         # Handle User input code (if request.form)
-
     form = LoginForm()
+    errors = {}
+    if len(form.errors) != 0:
+        errors.update(form.errors)
 
     if form.validate_on_submit():
 
@@ -72,9 +74,13 @@ def login():
         password = form.password.data
         query = session.query(UserModel).filter(UserModel.username == username)
         for row in query:
-            if row.password == password:
+            if row.password == password or check_password_hash(row.password, password):
                 login_user(row, remember=True)
                 return redirect("/")
+            else:
+                form.errors['wrong_password'] = ["Wrong Password"]
+    elif request.method == "POST":
+        print(form.errors)
 
     return render_template("login.html", form=form)
 
@@ -87,15 +93,12 @@ def logout():
 
 
 @app.route("/register", methods=["GET", "POST"])
-# @is_logged_in
 def registerUser():
 
     if current_user.is_authenticated:
         return redirect('/')
 
     form = RegisterForm()
-
-    print(form.firstname.data)
 
     if form.validate_on_submit():
         firstname = form.firstname.data
@@ -105,34 +108,28 @@ def registerUser():
         confirm_password = form.confirm_password.data
 
         if session.query(UserModel).filter(UserModel.username == username).count() > 0:
-
+            form.errors['username_exists'] = ["Username already exists"]
             return render_template("register.html", form=form)
 
         if password == confirm_password:
                 # add user
             new_user = UserModel(
-                name=firstname+" "+lastname, username=username, password=password)
+                name=firstname+" "+lastname, username=username, password=generate_password_hash(password))
             new_user.is_authenticated = True
             session.add(new_user)
             session.commit()
             login_user(new_user, remember=True)
             return redirect("/")
+        else:
+            form.errors['password_dont_match'] = ["Passwords don't match"]
         return render_template("register.html", form=form)
 
     elif request.form:
-        for field in form:
-            print(field.error)
-
-    form.firstname.data = ""
-    form.lastname.data = ""
-    form.username.data = ""
-    form.password.data = ""
-    form.confirm_password.data = ""
+        print(form.errors)
 
     return render_template("register.html", form=form)
 
 
-@app.route("/blog")
 def getBlog():
     # TODO write code to fetch data from database
     blog_id = request.args['id']
@@ -140,66 +137,141 @@ def getBlog():
         blog = session.query(BlogModel).get(blog_id)
         author = session.query(UserModel).get(blog.author)
 
-        return render_template("blog.html", name=blog.title, content=blog.content, author=author.name, editable=(blog.author == current_user.user_id), blog_id=blog_id)
+        return render_template("blog.html", name=blog.title, content=blog.content, author=author.name, editable=(blog.author == current_user.user_id), blog_id=blog_id, edited=blog.edited, author_id=author.user_id)
     except AttributeError:
-        return render_template("blog_deleted.html")
+        last_blog_id = session.query(BlogModel).order_by(
+            BlogModel.blog_id.desc()).first().blog_id
+        if int(blog_id) < last_blog_id:
+            return render_template("blog_deleted.html")
+        else:
+            return render_template("blog_404.html")
 
 
-@app.route("/newBlog", methods=["GET", "POST"])
+def output_html(html, code=200):
+    headers = {'Content-Type': 'text/html'}
+    return make_response(html, code, headers)
+
+
+# /blog/new
+# /blog/id/edit
+
+@app.route('/blog/<int:id>/edit', methods=["POST", "GET"])
 @login_required
-def newBlog():
-    if request.form:
-        form = request.form
-        print(form)
-        title = form['title']
-        content = form['content']
-        blog = BlogModel(title=title, content=content,
-                         author=current_user.user_id)
-        session.add(blog)
-        session.commit()
-        return redirect('/blog?id={}'.format(blog.blog_id))
-    else:
-        return render_template("post_blog.html")
+def editBlog(id):
+    blog_id = id
+    org_blog = session.query(BlogModel).get(blog_id)
+    form = BlogForm()
 
-
-@app.route("/editBlog", methods=["GET", "POST"])
-@login_required
-def editBlog():
-    blog_id = request.args['id']
-    if request.form:
-        form = request.form
-        print(form)
-        title = form['title']
-        content = form['content']
-        blog = BlogModel(title=title, content=content)
-        org_blog = session.query(BlogModel).get(blog_id)
-        if org_blog.author != current_user.user_id:
+    if form.validate_on_submit():
+        name = form['title'].data
+        content = form['content'].data
+        if org_blog.author != current_user.id:
             return "Permission Denied"
-        session.query(BlogModel).filter(BlogModel.blog_id == blog_id).update({
-            "title": title,
-            "content": content
+        session.query(BlogModel).filter(BlogModel.id == blog_id).update({
+            "name": name,
+            "content": content,
+            "updated_on": datetime.datetime.now()
         })
+
         session.commit()
-        return redirect('/blog?id={}'.format(blog_id))
+        return redirect("/blog/%d" % id)
     else:
         blog = session.query(BlogModel).get(blog_id)
-        if blog.author == current_user.user_id:
-            return render_template('edit_blog.html', title=blog.title, content=blog.content, blog_id=blog_id)
+        if blog.author == current_user.id:
+            return render_template('edit_blog.html', title=blog.name, content=blog.content, blog_id=blog_id, form=form)
         else:
             return "Sign in with correct user"
 
 
-@app.route("/deleteBlog", methods=["GET", "POST"])
+@app.route('/blog/new', methods=["GET", "POST"])
 @login_required
-def delete_blog():
-    blog_id = request.args["id"]
-    blog = session.query(BlogModel).get(blog_id)
-    if blog.author == current_user.user_id:
-        session.query(BlogModel).filter(BlogModel.blog_id == blog_id).delete()
+def newBlog():
+    form = BlogForm()
+    if form.validate_on_submit():
+        print(form)
+        title = form['title'].data
+        content = form['content'].data
+        blog = BlogModel(name=title, content=content,
+                         author=current_user.id, created_on=datetime.datetime.now())
+        session.add(blog)
         session.commit()
-        return redirect("/")
-    return "Permission Denied"
+        return redirect('/blog/{}'.format(blog.id))
+    else:
+        return render_template("post_blog.html", form=form)
 
+
+@app.route("/dashboard")
+def dashboard():
+    return render_template(
+        'dashboard.html'
+    )
+
+
+class BlogList(Resource):
+
+    def get(self, start, end):
+        ret_val = []
+        blogs = session.query(BlogModel).filter(
+            BlogModel.deleted_on == None).all()
+        print(len(blogs))
+        if len(blogs) < end:
+            end = len(blogs)
+        for i in range(start, end, 1):
+            print(i)
+            blog = blogs[i]
+            temp = blog.getDict()
+            temp['author'] = session.query(
+                UserModel).get(temp['author']).name
+            ret_val.append(temp)
+
+        return ret_val
+
+
+@app.route("/user/<int:id>")
+def viewUser(id):
+    user_id = id
+    try:
+        user = session.query(UserModel).get(user_id)
+        name = user.name
+        username = user.username
+        blogs = session.query(BlogModel).filter(
+            BlogModel.author == user_id).filter(BlogModel.deleted_on == None)
+        if blogs.count() == 0:
+            blogs = False
+        return render_template("view_user.html", name=name, username=username, blogs=blogs)
+    except AttributeError:
+        return "User doesn't exist"
+
+
+class Blog(Resource):
+
+    def get(self, id):
+        blog_id = id
+        try:
+            blog = session.query(BlogModel).get(id)
+            author = session.query(UserModel).get(blog.author)
+            if blog.deleted_on:
+                return output_html(render_template("blog_deleted.html"))
+            return output_html(render_template("blog.html", name=blog.name, content=blog.content, author=author.name, editable=(blog.author == current_user.id), blog_id=blog_id, edited=False, author_id=author.id), 200)
+        except AttributeError:
+            return output_html(render_template('blog_404.html'), 404)
+
+    def delete(self, id):
+        print(id)
+        blog_id = id
+        blog = session.query(BlogModel).get(id)
+        if blog.author == current_user.id:
+            session.query(BlogModel).filter(
+                BlogModel.id == blog_id).update({
+                    "deleted_on": datetime.datetime.now()
+                })
+            session.commit()
+            return True
+        return "Permission Denied"
+
+
+api.add_resource(BlogList, '/blog/<int:start>/<int:end>')
+api.add_resource(Blog, '/blog/<int:id>')
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
