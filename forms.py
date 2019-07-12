@@ -1,16 +1,16 @@
 from flask_wtf import Form
 
-from wtforms import StringField, PasswordField
+from wtforms import StringField, PasswordField, TextAreaField
 from wtforms.validators import EqualTo, DataRequired
 from wtforms.widgets import PasswordInput
 
 
 class RegisterForm(Form):
-    firstname = StringField('firstname', validators=[
+    firstname = StringField('First Name', validators=[
                             DataRequired(message="First name is required")])
-    lastname = StringField('lastname', validators=[
+    lastname = StringField('Last Name', validators=[
                            DataRequired(message="Last name is required")])
-    username = StringField('username', validators=[
+    username = StringField('Username', validators=[
                            DataRequired(message="Username is required")])
     password = PasswordField('Password', validators=[
         DataRequired("Password is required"), EqualTo("confirm_password",  message='Passwords must match')])
@@ -28,6 +28,6 @@ class LoginForm(Form):
 class BlogForm(Form):
     title = StringField('title', validators=[
         DataRequired(message="Blog title is required")])
-    content = StringField("content", validators=[
+    content = TextAreaField("content", validators=[
         DataRequired(message="Blog content is required")
     ])
