@@ -1,19 +1,44 @@
 {% extends 'base.html' %} {% block titleBlock %}{{ name }}{% endblock %} {%
 block bodyBlock %}
+<script>
+  function deleteBlog(id) {
+    console.log(id);
+    fetch(`/blog/${id}`, { method: "DELETE" })
+      .then(res => res.json())
+      .then(res => {
+        if (res) {
+          window.location.replace("/");
+        } else {
+          error_p = document.getElementById("error");
+          error_p.innerHTML = "errorrr";
+        }
+      });
+  }
+</script>
 <div class="card mb-3">
   <div class="card-header">
     <h3>{{ name }}</h3>
   </div>
   <div class="card-body">
-    <h6 class="card-subtitle text-muted">Written by {{ author }}</h6>
+    <h6 class="card-subtitle text-muted">
+      Written by <a href="/viewUser?id={{ author_id }}">{{ author }}</a>
+    </h6>
+    {% if edited %}
+    <br />
+    <h6 class="card-subtitle">
+      This blog has been edited since first release
+    </h6>
+    <hr />
+    {% endif %}
     <p class="card-text">{{ content }}</p>
   </div>
   <div class="card-footer">
     {% if editable %}
-    <a class="btn btn-warning" href="/editBlog?id={{ blog_id }}">Edit Blog</a>
-    <a class="btn btn-danger" href="/deleteBlog?id={{ blog_id }}"
-      >Delete Blog</a
-    >
+    <a class="btn btn-warning" href="/blog/{{ blog_id }}/edit">Edit Blog</a>
+    <button class="btn btn-danger" onclick="deleteBlog({{ blog_id }})">
+      Delete Blog
+    </button>
+    <p id="error"></p>
     {% endif %}
   </div>
 </div>
