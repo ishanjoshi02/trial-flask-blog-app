@@ -2,6 +2,7 @@ from flask_wtf import Form
 
 from wtforms import StringField, PasswordField
 from wtforms.validators import Email, DataRequired
+from wtforms.widgets import PasswordInput
 
 
 class RegisterForm(Form):
@@ -21,7 +22,7 @@ class LoginForm(Form):
     username = StringField("username", validators=[
                            DataRequired(message="username is required")])
     password = StringField("password", validators=[
-                           DataRequired("password is required")])
+                           DataRequired("password is required")], widget=PasswordInput())
 
 
 class BlogForm(Form):
