@@ -257,7 +257,12 @@ class Blog(Resource):
             author = session.query(UserModel).get(blog.author)
             if blog.deleted_on:
                 return output_html(render_template("blog_deleted.html"))
-            return output_html(render_template("blog.html", name=blog.name, content=blog.content, author=author.name, editable=(blog.author == current_user.id), blog_id=blog_id, edited=False, author_id=author.id), 200)
+            editable = False
+            try:
+                editable = (blog.author == current_user.id)
+            except AttributeError:
+                pass
+            return output_html(render_template("blog.html", name=blog.name, content=blog.content, author=author.name, editable=editable, blog_id=blog_id, edited=False, author_id=author.id), 200)
         except AttributeError:
             return output_html(render_template('blog_404.html'), 404)
 
@@ -280,4 +285,4 @@ api.add_resource(BlogList, '/blog/<int:start>/<int:end>')
 api.add_resource(Blog, '/blog/<int:id>')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=80)
+    app.run()
